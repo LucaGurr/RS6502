@@ -95,7 +95,7 @@ fn init() -> (Cpu, Mem) {
 }
 
 fn main() {
-    let (mut cpu,mut mem) = init();
+    let (cpu,mut mem) = init();
 
     mem.data[0] = 0xA9; // LDA #imm (example)
     mem.data[1] = 0x42;
