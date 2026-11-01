@@ -41,6 +41,12 @@ impl std::fmt::Debug for Mem {
     }
 }
 
+fn titlebar(title: &'static str){
+    println!("");
+    println!("{}:", title);
+    println!("");
+}
+
 fn flags_str(c: bool, z: bool, i: bool, d: bool, b: bool, v: bool, n: bool) -> String {
     let mut s = String::new();
     if c {
@@ -71,7 +77,9 @@ fn flags_str(c: bool, z: bool, i: bool, d: bool, b: bool, v: bool, n: bool) -> S
 }
 
 fn debug_state(cpu: &Cpu, mem: &Mem) {
-    println!("{cpu:?}");
+    println!("");
+    println!("{cpu:?}");    
+    println!("");
     let sp = cpu.sp as usize;
     let pc = cpu.pc as usize;
     println!("  SP[{:04x}]: {}", sp, hex_dump(&mem.data[sp..sp + 16]));
@@ -98,6 +106,30 @@ fn init() -> (Cpu, Mem) {
     (cpu, mem)
 }
 
+fn mem_print(mem: &Mem) {
+    let mut iter = mem.data.iter().peekable();
+    
+    titlebar("Memory");
+    
+    while let Some(&byte) = iter.next() {
+        print!("{:02x}", byte);
+        let mut count = 1;
+        while let Some(&next) = iter.peek() {
+            if next == &byte {
+                count += 1;
+                iter.next();
+            } else {
+                break;
+            }
+        }
+        if count > 1 {
+            print!("[{}]...", count);
+        }
+        print!(" ");
+    }
+    println!();
+}
+
 fn execute(cpu: &mut Cpu, mem: &Mem, mut cycles: u32) {
     while cycles > 0 {
         let instruction = fetch(cpu, mem);
@@ -113,7 +145,7 @@ fn execute(cpu: &mut Cpu, mem: &Mem, mut cycles: u32) {
         }
         cycles -= 1;
     }
-}   
+}
 
 fn fetch(cpu: &mut Cpu, mem: &Mem) -> u8 {
     let data = mem.data[cpu.pc as usize];
@@ -125,9 +157,13 @@ fn main() {
 
     mem.data[0] = 0xA9; // LDA #imm (example)
     mem.data[1] = 0x42;
+    mem.data[255] = 0xFF;
 
     debug_state(&cpu, &mem);
-    execute(&mut cpu, &mut mem, 2);
+
+    mem_print(&mem);
+    
+    execute(&mut cpu, &mut mem, 1);
 }
 
 #[test]
