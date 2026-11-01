@@ -79,8 +79,12 @@ fn debug_state(cpu: &Cpu, mem: &Mem) {
 }
 
 fn hex_dump(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ")
-}   
+    bytes
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
 
 fn init() -> (Cpu, Mem) {
     let cpu = Cpu {
@@ -94,11 +98,60 @@ fn init() -> (Cpu, Mem) {
     (cpu, mem)
 }
 
+fn execute(cpu: &mut Cpu, mem: &Mem, mut cycles: u32) {
+    while cycles > 0 {
+        let instruction = fetch(cpu, mem);
+        match instruction {
+            0xA9 => {
+                //LDA #imm
+                let val = fetch(cpu, mem);
+                cpu.a = val;
+                cpu.z = val == 0;
+                cpu.n = val & 0x80 != 0;
+            }
+            _ => panic!("The given instruction is currently not supported"),
+        }
+        cycles -= 1;
+    }
+}   
+
+fn fetch(cpu: &mut Cpu, mem: &Mem) -> u8 {
+    let data = mem.data[cpu.pc as usize];
+    cpu.pc += 1;
+    data
+}
 fn main() {
-    let (cpu,mut mem) = init();
+    let (mut cpu, mut mem) = init();
 
     mem.data[0] = 0xA9; // LDA #imm (example)
     mem.data[1] = 0x42;
 
     debug_state(&cpu, &mem);
+    execute(&mut cpu, &mut mem, 2);
 }
+
+#[test]
+fn test_lda_imm() {
+    let (mut cpu, mut mem) = init();
+    mem.data[0] = 0xA9;
+    mem.data[1] = 0x42;
+
+    execute(&mut cpu, &mut mem, 1);  // ← 1, not 2
+
+    assert_eq!(cpu.a, 0x42);
+    assert_eq!(cpu.pc, 2);
+    assert!(!cpu.z);
+    assert!(!cpu.n);
+}
+
+#[test]
+fn test_lda_imm_zero() {
+    let (mut cpu, mut mem) = init();
+    mem.data[0] = 0xA9;
+    mem.data[1] = 0x00;
+
+    execute(&mut cpu, &mut mem, 1);  // ← 1, not 2
+
+    assert_eq!(cpu.a, 0);
+    assert!(cpu.z);
+}   
