@@ -130,17 +130,18 @@ fn mem_print(mem: &Mem) {
     println!();
 }
 
+fn lda_imm(cpu: &mut Cpu, mem: &Mem) {
+    let val = fetch(cpu, mem);
+    cpu.a = val;
+    cpu.z = val == 0;
+    cpu.n = val & 0x80 != 0;
+}
+
 fn execute(cpu: &mut Cpu, mem: &Mem, mut cycles: u32) {
     while cycles > 0 {
         let instruction = fetch(cpu, mem);
         match instruction {
-            0xA9 => {
-                //LDA #imm
-                let val = fetch(cpu, mem);
-                cpu.a = val;
-                cpu.z = val == 0;
-                cpu.n = val & 0x80 != 0;
-            }
+            0xA9 => lda_imm(cpu, mem),
             _ => panic!("The given instruction is currently not supported"),
         }
         cycles -= 1;
