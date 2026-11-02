@@ -36,8 +36,8 @@
 | Done  | Instruction | Mode | Opcode | Bytes | Cycles | Register / flag effects |
 | ----- | ----------- | ---- | ------ | ----: | -----: | ----------------------- |
 | - [x] | LDA         | IMM  | `A9`   |     2 |      2 | A = value; NZ           |
-| - [ ] | LDA         | ZP   | `A5`   |     2 |      3 | A = M; NZ               |
-| - [ ] | LDA         | ZPX  | `B5`   |     2 |      4 | A = M; NZ               |
+| - [x] | LDA         | ZP   | `A5`   |     2 |      3 | A = M; NZ               |
+| - [x] | LDA         | ZPX  | `B5`   |     2 |      4 | A = M; NZ               |
 | - [ ] | LDA         | ABS  | `AD`   |     3 |      4 | A = M; NZ               |
 | - [ ] | LDA         | ABX  | `BD`   |     3 |     4+ | A = M; NZ               |
 | - [ ] | LDA         | ABY  | `B9`   |     3 |     4+ | A = M; NZ               |

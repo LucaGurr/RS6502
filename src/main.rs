@@ -3,6 +3,7 @@ const MAX_DATA: usize = 65536;
 #[derive(Default)]
 struct Cpu {
     pc: u32,
+    cycles: u64,
     sp: u8,
     a: u8,
     x: u8,
@@ -24,8 +25,9 @@ impl std::fmt::Debug for Cpu {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
-            "Cpu {{ pc={:04x} sp={:02x} a={:02x} x={:02x} y={:02x} flags=[{}] }}",
+            "Cpu {{ pc={:04x} cycles={} sp={:02x} a={:02x} x={:02x} y={:02x} flags=[{}] }}",
             self.pc,
+            self.cycles,
             self.sp,
             self.a,
             self.x,
@@ -135,16 +137,38 @@ fn lda_imm(cpu: &mut Cpu, mem: &Mem) {
     cpu.a = val;
     cpu.z = val == 0;
     cpu.n = val & 0x80 != 0;
+    cpu.cycles += 2;
 }
 
-fn execute(cpu: &mut Cpu, mem: &Mem, mut cycles: u32) {
-    while cycles > 0 {
-        let instruction = fetch(cpu, mem);
-        match instruction {
-            0xA9 => lda_imm(cpu, mem),
-            _ => panic!("The given instruction is currently not supported"),
-        }
-        cycles -= 1;
+fn lda_zp(cpu: &mut Cpu, mem: &Mem) {
+    let addr = fetch(cpu, mem) as usize;
+    let val = mem.data[addr];
+
+    cpu.a = val;
+    cpu.z = val == 0;
+    cpu.n = val & 0x80 != 0;
+    cpu.cycles += 3;
+}
+
+fn lda_zpx(cpu: &mut Cpu, mem: &Mem) {
+    let base = fetch(cpu, mem);
+    let addr = base.wrapping_add(cpu.x) as usize;
+    let val = mem.data[addr];
+
+    cpu.a = val;
+    cpu.z = val == 0;
+    cpu.n = val & 0x80 != 0;
+    cpu.cycles += 4;
+}
+
+fn execute(cpu: &mut Cpu, mem: &Mem) {
+
+    let instruction = fetch(cpu, mem);
+    match instruction {
+        0xA9 => lda_imm(cpu, mem),      // 2 cycles
+        0xA5 => lda_zp(cpu, mem),       // 3 cycles
+        0xB5 => lda_zpx(cpu, mem),      // 4 cycles
+        _ => panic!("The given instruction is currently not supported"),
     }
 }
 
@@ -164,7 +188,7 @@ fn main() {
 
     mem_print(&mem);
     
-    execute(&mut cpu, &mut mem, 1);
+    execute(&mut cpu, &mem);
 }
 
 #[test]
@@ -173,10 +197,11 @@ fn test_lda_imm() {
     mem.data[0] = 0xA9;
     mem.data[1] = 0x42;
 
-    execute(&mut cpu, &mut mem, 1);  // ← 1, not 2
+    execute(&mut cpu, &mem);
 
     assert_eq!(cpu.a, 0x42);
     assert_eq!(cpu.pc, 2);
+    assert_eq!(cpu.cycles, 2);
     assert!(!cpu.z);
     assert!(!cpu.n);
 }
@@ -187,8 +212,41 @@ fn test_lda_imm_zero() {
     mem.data[0] = 0xA9;
     mem.data[1] = 0x00;
 
-    execute(&mut cpu, &mut mem, 1);  // ← 1, not 2
+    execute(&mut cpu, &mem);
 
     assert_eq!(cpu.a, 0);
     assert!(cpu.z);
-}   
+    assert_eq!(cpu.cycles, 2);
+}
+
+#[test]
+fn test_lda_zp() {
+    let (mut cpu, mut mem) = init();
+
+    mem.data[0] = 0xA5; // LDA ZP
+    mem.data[1] = 0x42; // Address
+    mem.data[0x42] = 0x99; // Value at address
+
+    execute(&mut cpu, &mem);
+
+    assert_eq!(cpu.a, 0x99);
+    assert_eq!(cpu.pc, 2);
+    assert_eq!(cpu.cycles, 3);
+    assert!(!cpu.z);
+    assert!(cpu.n);
+}
+
+#[test]
+fn test_lda_zpx_wraps_within_zero_page() {
+    let (mut cpu, mut mem) = init();
+    cpu.x = 0x20;
+    mem.data[0] = 0xB5; // LDA $F0,X
+    mem.data[1] = 0xF0;
+    mem.data[0x10] = 0x80; // ($F0 + $20) wraps to $10
+
+    execute(&mut cpu, &mem);
+
+    assert_eq!(cpu.a, 0x80);
+    assert!(cpu.n);
+    assert_eq!(cpu.cycles, 4);
+}
