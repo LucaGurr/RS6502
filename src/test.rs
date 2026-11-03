@@ -51,6 +51,33 @@ fn test_lda_zpx_wraps_within_zero_page() {
     assert!(cpu.n);
     assert_eq!(cpu.cycles, 4);
 }
+#[test]
+fn test_lda_zpx_wraps_within_zero_page_and_sets_zero_flag() {
+    let (mut cpu, mut mem) = init();
+    cpu.x = 0x20;
+    mem.data[0] = 0xB5;
+    mem.data[1] = 0xF0;
+    mem.data[0x10] = 0x00;
+    execute(&mut cpu, &mut mem);
+    assert_eq!(cpu.a, 0x00);
+    assert!(cpu.z);
+    assert_eq!(cpu.cycles, 4);
+}
+
+#[test]
+fn test_lda_abx() {
+    let (mut cpu, mut mem) = init();
+    cpu.x = 0x10;
+    mem.data[0] = 0xBD;
+    mem.data[1] = 0x00;
+    mem.data[2] = 0x20;
+    mem.data[0x2010] = 0x55;
+    execute(&mut cpu, &mut mem);
+    assert_eq!(cpu.a, 0x55);
+    assert_eq!(cpu.pc, 3);
+    assert_eq!(cpu.cycles, 4);
+}
+
 
 #[test]
 fn test_lda_absolute() {

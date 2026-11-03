@@ -33,6 +33,14 @@ pub fn lda_abs(cpu: &mut Cpu, mem: &Mem) {
     cpu.cycles += 4;
 }
 
+pub fn lda_abx(cpu: &mut Cpu, mem: &Mem) {
+    let base_addr = fetch_word(cpu, mem);
+    let addr = base_addr.wrapping_add(cpu.x as u16) as usize;
+    cpu.a = mem.data[addr];
+    set_nz(cpu, cpu.a);
+    cpu.cycles += 4 + u64::from((base_addr & 0xFF00) != (addr as u16 & 0xFF00));
+}
+
 pub fn ldx_imm(cpu: &mut Cpu, mem: &Mem) {
     cpu.x = fetch(cpu, mem);
     set_nz(cpu, cpu.x);
