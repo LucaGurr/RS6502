@@ -78,6 +78,34 @@ fn test_lda_abx() {
     assert_eq!(cpu.cycles, 4);
 }
 
+#[test]
+fn test_lda_aby() {
+    let (mut cpu, mut mem) = init();
+    cpu.y = 0x10;
+    mem.data[0] = 0xB9;
+    mem.data[1] = 0x00;
+    mem.data[2] = 0x20;
+    mem.data[0x2010] = 0x55;
+    execute(&mut cpu, &mut mem);
+    assert_eq!(cpu.a, 0x55);
+    assert_eq!(cpu.pc, 3);
+    assert_eq!(cpu.cycles, 4);
+}
+
+#[test]
+fn test_lda_inx() {
+    let (mut cpu, mut mem) = init();
+    cpu.x = 0x10;
+    mem.data[0] = 0xA1;
+    mem.data[1] = 0x00;
+    mem.data[0x10] = 0x34;
+    mem.data[0x11] = 0x12;
+    mem.data[0x1234] = 0x55;   
+    execute(&mut cpu, &mut mem);
+    assert_eq!(cpu.a, 0x55);
+    assert_eq!(cpu.pc, 2);
+    assert_eq!(cpu.cycles, 6);
+}
 
 #[test]
 fn test_lda_absolute() {

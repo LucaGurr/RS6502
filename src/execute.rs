@@ -15,6 +15,7 @@ pub fn execute(cpu: &mut Cpu, mem: &mut Mem) {
         0x8D => sta_abs(cpu, mem),
         0x86 => stx_zp(cpu, mem),
         0xA0 => ldy_imm(cpu, mem),
+        0xA1 => lda_inx(cpu, mem),
         0xA2 => ldx_imm(cpu, mem),
         0xA5 => lda_zp(cpu, mem),
         0xA9 => lda_imm(cpu, mem),

@@ -41,7 +41,7 @@
 | - [x] | LDA         | ABS  | `AD`   |     3 |      4 | A = M; NZ               |
 | - [x]  | LDA         | ABX  | `BD`   |     3 |     4+ | A = M; NZ               |
 | - [x] | LDA         | ABY  | `B9`   |     3 |     4+ | A = M; NZ               |
-| - [ ] | LDA         | INX  | `A1`   |     2 |      6 | A = M; NZ               |
+| - [] | LDA         | INX  | `A1`   |     2 |      6 | A = M; NZ               |
 | - [ ] | LDA         | INY  | `B1`   |     2 |     5+ | A = M; NZ               |
 | - [x] | LDX         | IMM  | `A2`   |     2 |      2 | X = value; NZ           |
 | - [ ] | LDX         | ZP   | `A6`   |     2 |      3 | X = M; NZ               |

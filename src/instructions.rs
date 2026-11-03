@@ -49,6 +49,14 @@ pub fn lda_aby(cpu: &mut Cpu, mem: &Mem) {
     cpu.cycles += 4 + u64::from((base_addr & 0xFF00) != (addr as u16 & 0xFF00));
 }
 
+pub fn lda_inx(cpu: &mut Cpu, mem: &Mem) {
+    let zp_addr = fetch(cpu, mem).wrapping_add(cpu.x) as usize;
+    let addr = mem.data[zp_addr] as u16 | (mem.data[zp_addr.wrapping_add(1) % 256] as u16) << 8;
+    cpu.a = mem.data[addr as usize];
+    set_nz(cpu, cpu.a);
+    cpu.cycles += 6;
+}
+
 pub fn ldx_imm(cpu: &mut Cpu, mem: &Mem) {
     cpu.x = fetch(cpu, mem);
     set_nz(cpu, cpu.x);
