@@ -1,3 +1,4 @@
+        ;promt
         LDA #'T'
         STA $F001
         LDA #'h'
@@ -47,4 +48,4 @@
         STA $F001
         LDA #10
         STA $F001
-        BRK
+; rather unoptimal printing of the result, tho it seems era appropriate...
