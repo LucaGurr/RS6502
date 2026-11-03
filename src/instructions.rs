@@ -158,7 +158,8 @@ fn fetch_word(cpu: &mut Cpu, mem: &Mem) -> u16 {
 }
 
 fn store(mem: &mut Mem, addr: usize, value: u8) {
-    if addr == 0xF001 { // arbitrary, system specific
+    if addr == 0xF001 {
+        // arbitrary, system specific
         print!("{}", value as char);
     } else {
         mem.data[addr] = value;

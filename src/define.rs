@@ -24,9 +24,17 @@ pub struct Mem {
 
 impl std::fmt::Debug for Cpu {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Cpu {{ pc={:04x} cycles={} sp={:02x} a={:02x} x={:02x} y={:02x} flags=[{}] }}",
-            self.pc, self.cycles, self.sp, self.a, self.x, self.y,
-            flags_str(self.c, self.z, self.i, self.d, self.b, self.v, self.n))
+        write!(
+            f,
+            "Cpu {{ pc={:04x} cycles={} sp={:02x} a={:02x} x={:02x} y={:02x} flags=[{}] }}",
+            self.pc,
+            self.cycles,
+            self.sp,
+            self.a,
+            self.x,
+            self.y,
+            flags_str(self.c, self.z, self.i, self.d, self.b, self.v, self.n)
+        )
     }
 }
 
@@ -38,20 +46,41 @@ impl std::fmt::Debug for Mem {
 
 fn flags_str(c: bool, z: bool, i: bool, d: bool, b: bool, v: bool, n: bool) -> String {
     let mut s = String::new();
-    if c { s.push('C'); }
-    if z { s.push('Z'); }
-    if i { s.push('I'); }
-    if d { s.push('D'); }
-    if b { s.push('B'); }
-    if v { s.push('V'); }
-    if n { s.push('N'); }
-    if s.is_empty() { s.push_str("------"); }
+    if c {
+        s.push('C');
+    }
+    if z {
+        s.push('Z');
+    }
+    if i {
+        s.push('I');
+    }
+    if d {
+        s.push('D');
+    }
+    if b {
+        s.push('B');
+    }
+    if v {
+        s.push('V');
+    }
+    if n {
+        s.push('N');
+    }
+    if s.is_empty() {
+        s.push_str("------");
+    }
     s
 }
 
 pub fn init() -> (Cpu, Mem) {
-    let cpu = Cpu { pc: 0, sp: 255, ..Default::default() };
-    let mem = Mem { data: [0u8; MAX_DATA] };
+    let cpu = Cpu {
+        pc: 0,
+        sp: 255,
+        ..Default::default()
+    };
+    let mem = Mem {
+        data: [0u8; MAX_DATA],
+    };
     (cpu, mem)
 }
-

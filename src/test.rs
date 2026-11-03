@@ -100,7 +100,7 @@ fn test_lda_inx() {
     mem.data[1] = 0x00;
     mem.data[0x10] = 0x34;
     mem.data[0x11] = 0x12;
-    mem.data[0x1234] = 0x55;   
+    mem.data[0x1234] = 0x55;
     execute(&mut cpu, &mut mem);
     assert_eq!(cpu.a, 0x55);
     assert_eq!(cpu.pc, 2);

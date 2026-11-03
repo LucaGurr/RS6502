@@ -33,7 +33,11 @@ pub fn mem_print(mem: &Mem) {
 }
 
 pub fn hex_dump(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{:02X}", byte)).collect::<Vec<_>>().join(" ")
+    bytes
+        .iter()
+        .map(|byte| format!("{:02X}", byte))
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 pub fn titlebar(title: &str) {

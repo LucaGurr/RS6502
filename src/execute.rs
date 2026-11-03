@@ -29,7 +29,10 @@ pub fn execute(cpu: &mut Cpu, mem: &mut Mem) {
         0xE8 => inx(cpu),
         0xEA => nop(cpu),
         0xF0 => branch(cpu, mem, cpu.z),
-        _ => panic!("Unsupported opcode ${instruction:02X} at ${:04X}", cpu.pc - 1),
+        _ => panic!(
+            "Unsupported opcode ${instruction:02X} at ${:04X}",
+            cpu.pc - 1
+        ),
     }
 }
 
