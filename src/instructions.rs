@@ -65,10 +65,10 @@ pub fn stx_zp(cpu: &mut Cpu, mem: &mut Mem) {
 }
 
 pub fn adc_imm(cpu: &mut Cpu, mem: &Mem) {
-    let value = fetch(cpu, mem);
-    let sum = cpu.a as u16 + value as u16 + u16::from(cpu.c);
+    let mem_value = fetch(cpu, mem);
+    let sum = cpu.a as u16 + mem_value as u16 + cpu.c as u16;
     let result = sum as u8;
-    cpu.v = (!(cpu.a ^ value) & (cpu.a ^ result) & 0x80) != 0;
+    cpu.v = (!(cpu.a ^ mem_value) & (cpu.a ^ result) & 0x80) != 0;
     cpu.c = sum > 0xFF;
     cpu.a = result;
     set_nz(cpu, result);
@@ -134,7 +134,7 @@ fn fetch_word(cpu: &mut Cpu, mem: &Mem) -> u16 {
 }
 
 fn store(mem: &mut Mem, addr: usize, value: u8) {
-    if addr == 0xF001 {
+    if addr == 0xF001 { // arbitrary, system specific
         print!("{}", value as char);
     } else {
         mem.data[addr] = value;
