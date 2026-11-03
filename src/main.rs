@@ -2,11 +2,13 @@ mod assembler;
 mod define;
 mod execute;
 mod instructions;
+pub mod helpers;
 
 #[cfg(test)]
 mod test;
 
 use define::init;
+use helpers::*;
 use execute::run;
 use std::io::{self, Write};
 
@@ -37,11 +39,9 @@ fn main() {
     let begin = start as usize;
     mem.data[begin..begin + program.len()].copy_from_slice(&program);
     cpu.pc = start as u32;
+    debug_state(&cpu, &mem);
     println!("Running {path}\n");
     run(&mut cpu, &mut mem);
     println!("\n\nStopped after {} cycles at ${:04X}.", cpu.cycles, cpu.pc);
-
-    mem_print(&mem);
-    
-    execute(&mut cpu, &mem);
+    debug_state(&cpu, &mem);
 }
