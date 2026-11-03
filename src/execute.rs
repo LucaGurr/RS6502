@@ -21,6 +21,7 @@ pub fn execute(cpu: &mut Cpu, mem: &mut Mem) {
         0xAD => lda_abs(cpu, mem),
         0xBD => lda_abx(cpu, mem),
         0xB5 => lda_zpx(cpu, mem),
+        0xB9 => lda_aby(cpu, mem),
         0xC9 => cmp_imm(cpu, mem),
         0xCA => dex(cpu),
         0xD0 => branch(cpu, mem, !cpu.z),
