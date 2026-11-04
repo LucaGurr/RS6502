@@ -40,6 +40,34 @@ fn test_lda_zp() {
 }
 
 #[test]
+fn test_ldx_zp() {
+    let (mut cpu, mut mem) = init();
+    mem.data[0] = 0xA6;
+    mem.data[1] = 0x42;
+    mem.data[0x42] = 0x99;
+    execute(&mut cpu, &mut mem);
+    assert_eq!(cpu.x, 0x99);
+    assert_eq!(cpu.pc, 2);
+    assert_eq!(cpu.cycles, 3);
+    assert!(!cpu.z);
+    assert!(cpu.n);
+}
+
+#[test]
+fn test_ldy_zp() {
+    let (mut cpu, mut mem) = init();
+    mem.data[0] = 0xA4;
+    mem.data[1] = 0x42;
+    mem.data[0x42] = 0x99;
+    execute(&mut cpu, &mut mem);
+    assert_eq!(cpu.y, 0x99);
+    assert_eq!(cpu.pc, 2);
+    assert_eq!(cpu.cycles, 3);
+    assert!(!cpu.z);
+    assert!(cpu.n);
+}
+
+#[test]
 fn test_lda_zpx_wraps_within_zero_page() {
     let (mut cpu, mut mem) = init();
     cpu.x = 0x20;
@@ -97,6 +125,20 @@ fn test_lda_inx() {
     let (mut cpu, mut mem) = init();
     cpu.x = 0x10;
     mem.data[0] = 0xA1;
+    mem.data[1] = 0x00;
+    mem.data[0x10] = 0x34;
+    mem.data[0x11] = 0x12;
+    mem.data[0x1234] = 0x55;
+    execute(&mut cpu, &mut mem);
+    assert_eq!(cpu.a, 0x55);
+    assert_eq!(cpu.pc, 2);
+    assert_eq!(cpu.cycles, 6);
+}
+#[test]
+fn test_lda_iny() {
+    let (mut cpu, mut mem) = init();
+    cpu.y = 0x10;
+    mem.data[0] = 0xB1;
     mem.data[1] = 0x00;
     mem.data[0x10] = 0x34;
     mem.data[0x11] = 0x12;

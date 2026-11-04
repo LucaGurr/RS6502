@@ -19,6 +19,20 @@ pub fn lda_zp(cpu: &mut Cpu, mem: &Mem) {
     cpu.cycles += 3;
 }
 
+pub fn ldx_zp(cpu: &mut Cpu, mem: &Mem) {
+    let addr = fetch(cpu, mem) as usize;
+    cpu.x = mem.data[addr];
+    set_nz(cpu, cpu.x);
+    cpu.cycles += 3;
+}
+
+pub fn ldy_zp(cpu: &mut Cpu, mem: &Mem) {
+    let addr = fetch(cpu, mem) as usize;
+    cpu.y = mem.data[addr];
+    set_nz(cpu, cpu.y);
+    cpu.cycles += 3;
+}
+
 pub fn lda_zpx(cpu: &mut Cpu, mem: &Mem) {
     let addr = fetch(cpu, mem).wrapping_add(cpu.x) as usize;
     cpu.a = mem.data[addr];
@@ -51,6 +65,14 @@ pub fn lda_aby(cpu: &mut Cpu, mem: &Mem) {
 
 pub fn lda_inx(cpu: &mut Cpu, mem: &Mem) {
     let zp_addr = fetch(cpu, mem).wrapping_add(cpu.x) as usize;
+    let addr = mem.data[zp_addr] as u16 | (mem.data[zp_addr.wrapping_add(1) % 256] as u16) << 8;
+    cpu.a = mem.data[addr as usize];
+    set_nz(cpu, cpu.a);
+    cpu.cycles += 6;
+}
+
+pub fn lda_iny(cpu: &mut Cpu, mem: &Mem) {
+    let zp_addr = fetch(cpu, mem).wrapping_add(cpu.y) as usize;
     let addr = mem.data[zp_addr] as u16 | (mem.data[zp_addr.wrapping_add(1) % 256] as u16) << 8;
     cpu.a = mem.data[addr as usize];
     set_nz(cpu, cpu.a);
