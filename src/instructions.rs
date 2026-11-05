@@ -39,12 +39,46 @@ pub fn lda_zpx(cpu: &mut Cpu, mem: &Mem) {
     set_nz(cpu, cpu.a);
     cpu.cycles += 4;
 }
+pub fn ldy_zpx(cpu: &mut Cpu, mem: &Mem) {
+    let addr = fetch(cpu, mem).wrapping_add(cpu.x) as usize;
+    cpu.y = mem.data[addr];
+    set_nz(cpu, cpu.y);
+    cpu.cycles += 4;
+}
+
+pub fn ldx_zpy(cpu: &mut Cpu, mem: &Mem) {
+    let addr = fetch(cpu, mem).wrapping_add(cpu.y) as usize;
+    cpu.x = mem.data[addr];
+    set_nz(cpu, cpu.x);
+    cpu.cycles += 4;
+}
 
 pub fn lda_abs(cpu: &mut Cpu, mem: &Mem) {
     let addr = fetch_word(cpu, mem) as usize;
     cpu.a = mem.data[addr];
     set_nz(cpu, cpu.a);
     cpu.cycles += 4;
+}
+pub fn ldy_abs(cpu: &mut Cpu, mem: &Mem) {
+    let addr = fetch_word(cpu, mem) as usize;
+    cpu.y = mem.data[addr];
+    set_nz(cpu, cpu.y);
+    cpu.cycles += 4;
+}
+
+pub fn ldx_abs(cpu: &mut Cpu, mem: &Mem) {
+    let addr = fetch_word(cpu, mem) as usize;
+    cpu.x = mem.data[addr];
+    set_nz(cpu, cpu.x);
+    cpu.cycles += 4;
+}
+
+pub fn ldx_aby(cpu: &mut Cpu, mem: &Mem) {
+    let base_addr = fetch_word(cpu, mem);
+    let addr = base_addr.wrapping_add(cpu.y as u16) as usize;
+    cpu.x = mem.data[addr];
+    set_nz(cpu, cpu.x);
+    cpu.cycles += 4 + u64::from((base_addr & 0xFF00) != (addr as u16 & 0xFF00));
 }
 
 pub fn lda_abx(cpu: &mut Cpu, mem: &Mem) {

@@ -20,8 +20,8 @@ fn main() {
         eprintln!("Could not read file name: {error}");
         return;
     }
-    let path = path.trim();
-    let source = match std::fs::read_to_string(path) {
+    let path = "assembly/".to_owned() + path.trim();
+    let source = match std::fs::read_to_string(&path) {
         Ok(source) => source,
         Err(error) => {
             eprintln!("Could not read {path}: {error}");

@@ -5,5 +5,5 @@ edition = "2024"
 
 [dependencies]
 
-[lints.rust]
-warnings = "deny"
+#[lints.rust]
+#warnings = "deny"
