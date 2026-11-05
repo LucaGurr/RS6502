@@ -1,2 +1,2 @@
 # RS6502
-A MOS 6502 emulator written fully using only the standard library in rust
+A MOS 6502 emulator written fully using only the standard library in rust with an assembler so it supports assembly and machine code
