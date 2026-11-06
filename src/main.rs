@@ -1,15 +1,16 @@
 mod assembler;
 mod define;
 mod execute;
-mod instructions;
 pub mod helpers;
+mod instructions;
+mod macro_assembler;
 
 #[cfg(test)]
 mod test;
 
 use define::init;
-use helpers::*;
 use execute::run;
+use helpers::*;
 use std::io::{self, Write};
 
 fn main() {
@@ -28,7 +29,7 @@ fn main() {
             return;
         }
     };
-    let (start, program) = match assembler::assemble(&source) {
+    let image = match assembler::assemble_image(&source) {
         Ok(program) => program,
         Err(error) => {
             eprintln!("Assembly error: {error}");
@@ -36,12 +37,24 @@ fn main() {
         }
     };
     let (mut cpu, mut mem) = init();
-    let begin = start as usize;
-    mem.data[begin..begin + program.len()].copy_from_slice(&program);
-    cpu.pc = start as u32;
+    let begin = image.load_address as usize;
+    let end = begin + image.bytes.len();
+    if end > mem.data.len() {
+        eprintln!("Assembly error: image exceeds the 6502 address space");
+        return;
+    }
+    mem.data[begin..end].copy_from_slice(&image.bytes);
+    mem.read_only = image.read_only;
+    cpu.pc = image.entrypoint as u32;
     debug_state(&cpu, &mem);
     println!("Running {path}\n");
-    run(&mut cpu, &mut mem);
-    println!("\n\nStopped after {} cycles at ${:04X}.", cpu.cycles, cpu.pc);
+    if let Err(error) = run(&mut cpu, &mut mem) {
+        eprintln!("Runtime I/O error: {error}");
+        return;
+    }
+    println!(
+        "\n\nStopped after {} cycles at ${:04X}.",
+        cpu.cycles, cpu.pc
+    );
     debug_state(&cpu, &mem);
 }

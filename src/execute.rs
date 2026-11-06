@@ -1,56 +1,94 @@
 use crate::define::{Cpu, Mem};
-use crate::instructions::*;
+use crate::instructions::execute_opcode;
+use std::collections::VecDeque;
+use std::io::{self, BufRead, Write};
+
+pub const SIM_INPUT_HOOK: u16 = 0xFFF0;
+pub const SIM_OUTPUT_HOOK: u16 = 0xFFF3;
+pub const SIM_CHAR_INPUT_HOOK: u16 = 0xFFF6;
 
 pub fn execute(cpu: &mut Cpu, mem: &mut Mem) {
     if cpu.halted {
         return;
     }
     let opcode = fetch(cpu, mem);
-    match opcode {
-        0x00 => brk             (cpu),
-        0x18 => clc             (cpu),
-        0x4C => jmp_abs         (cpu, mem),
-        0x69 => adc_imm         (cpu, mem),
-        0x6D => adc_abs         (cpu, mem),
-        0x79 => adc_aby         (cpu, mem),
-        0x7D => adc_abx         (cpu, mem),
-        0x85 => sta_zp          (cpu, mem),
-        0x86 => stx_zp          (cpu, mem),
-        0x8D => sta_abs         (cpu, mem),
-        0xA0 => ldy_imm         (cpu, mem),
-        0xA1 => lda_inx         (cpu, mem),
-        0xA2 => ldx_imm         (cpu, mem),
-        0xA4 => ldy_zp          (cpu, mem),
-        0xA5 => lda_zp          (cpu, mem),
-        0xA6 => ldx_zp          (cpu, mem),
-        0xA9 => lda_imm         (cpu, mem),
-        0xAC => ldy_abs         (cpu, mem),
-        0xAD => lda_abs         (cpu, mem),
-        0xAE => ldx_abs         (cpu, mem),
-        0xB1 => lda_iny         (cpu, mem),
-        0xB4 => ldy_zpx         (cpu, mem),
-        0xB5 => lda_zpx         (cpu, mem),
-        0xB6 => ldx_zpy         (cpu, mem),
-        0xB9 => lda_aby         (cpu, mem),
-        0xBD => lda_abx         (cpu, mem),
-        0xBE => ldx_aby         (cpu, mem),
-        0xC9 => cmp_imm         (cpu, mem),
-        0xCA => dex             (cpu),
-        0xD0 => branch          (cpu, mem, !cpu.z),
-        0xE8 => inx             (cpu),
-        0xEA => nop             (cpu),
-        0xF0 => branch          (cpu, mem, cpu.z),
-        _ => panic!(
-            "Unsupported opcode ${opcode:02X} at ${:04X}",
-            cpu.pc - 1
-        ),
-    }
+    execute_opcode(cpu, mem, opcode);
 }
 
-pub fn run(cpu: &mut Cpu, mem: &mut Mem) {
+pub fn run(cpu: &mut Cpu, mem: &mut Mem) -> io::Result<()> {
+    let stdin = io::stdin();
+    let stdout = io::stdout();
+    run_with_io(cpu, mem, stdin.lock(), stdout.lock())
+}
+
+pub fn run_with_io<R: BufRead, W: Write>(
+    cpu: &mut Cpu,
+    mem: &mut Mem,
+    mut input: R,
+    mut output: W,
+) -> io::Result<()> {
+    let mut pending_input = VecDeque::new();
     while !cpu.halted {
-        execute(cpu, mem);
+        match cpu.pc as u16 {
+            SIM_INPUT_HOOK => {
+                let Some(character) = next_input_character(&mut input, &mut pending_input)? else {
+                    cpu.halted = true;
+                    continue;
+                };
+                cpu.a = character;
+                cpu.z = character == 0;
+                cpu.n = character & 0x80 != 0;
+                return_from_subroutine(cpu, mem);
+                return_from_subroutine(cpu, mem);
+                cpu.cycles += 12;
+            }
+            SIM_OUTPUT_HOOK => {
+                output.write_all(&[cpu.a])?;
+                output.flush()?;
+                return_from_subroutine(cpu, mem);
+                cpu.cycles += 6;
+            }
+            SIM_CHAR_INPUT_HOOK => {
+                let Some(character) = next_input_character(&mut input, &mut pending_input)? else {
+                    cpu.halted = true;
+                    continue;
+                };
+                cpu.a = character;
+                cpu.z = character == 0;
+                cpu.n = character & 0x80 != 0;
+                return_from_subroutine(cpu, mem);
+                cpu.cycles += 6;
+            }
+            _ => execute(cpu, mem),
+        }
     }
+    Ok(())
+}
+
+fn next_input_character<R: BufRead>(
+    input: &mut R,
+    pending: &mut VecDeque<u8>,
+) -> io::Result<Option<u8>> {
+    if pending.is_empty() {
+        let mut line = String::new();
+        if input.read_line(&mut line)? == 0 {
+            return Ok(None);
+        }
+        while line.ends_with(['\n', '\r']) {
+            line.pop();
+        }
+        pending.extend(line.bytes());
+        pending.push_back(b'\r');
+    }
+    Ok(pending.pop_front())
+}
+
+fn return_from_subroutine(cpu: &mut Cpu, mem: &Mem) {
+    cpu.sp = cpu.sp.wrapping_add(1);
+    let low = mem.data[0x0100 | cpu.sp as usize] as u16;
+    cpu.sp = cpu.sp.wrapping_add(1);
+    let high = mem.data[0x0100 | cpu.sp as usize] as u16;
+    cpu.pc = (high << 8 | low).wrapping_add(1) as u32;
 }
 
 pub fn fetch(cpu: &mut Cpu, mem: &Mem) -> u8 {

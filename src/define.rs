@@ -20,6 +20,7 @@ pub struct Cpu {
 
 pub struct Mem {
     pub data: [u8; MAX_DATA],
+    pub read_only: Option<(usize, usize)>,
 }
 
 impl std::fmt::Debug for Cpu {
@@ -81,6 +82,7 @@ pub fn init() -> (Cpu, Mem) {
     };
     let mem = Mem {
         data: [0u8; MAX_DATA],
+        read_only: None,
     };
     (cpu, mem)
 }

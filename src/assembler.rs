@@ -2,6 +2,30 @@ use std::collections::HashMap;
 
 pub const LOAD_ADDRESS: u16 = 0x0600;
 
+pub struct AssemblyImage {
+    pub load_address: u16,
+    pub entrypoint: u16,
+    pub bytes: Vec<u8>,
+    pub read_only: Option<(usize, usize)>,
+}
+
+pub fn assemble_image(source: &str) -> Result<AssemblyImage, String> {
+    if source.lines().any(|line| {
+        let line = line.trim_start();
+        line.starts_with("TITLE") || line.starts_with("SEARCH")
+    }) {
+        return crate::macro_assembler::assemble(source);
+    }
+
+    let (load_address, bytes) = assemble(source)?;
+    Ok(AssemblyImage {
+        load_address,
+        entrypoint: load_address,
+        bytes,
+        read_only: None,
+    })
+}
+
 #[derive(Debug, Clone)]
 struct Line {
     number: usize,
