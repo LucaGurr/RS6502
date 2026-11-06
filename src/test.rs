@@ -1615,11 +1615,11 @@ fn bne_takes_the_most_positive_relative_offset() {
 #[test]
 fn assembled_program_executes_load_store_and_reload() {
     let source = "LDA #$2A\nSTA $0300\nLDA $0300\n";
-    let (start, program) = crate::assembler::assemble(source).unwrap();
+    let image = crate::assembler::assemble_image(source).unwrap();
     let (mut cpu, mut mem) = init();
-    let begin = start as usize;
-    mem.data[begin..begin + program.len()].copy_from_slice(&program);
-    cpu.pc = start as u32;
+    let begin = image.load_address as usize;
+    mem.data[begin..begin + image.bytes.len()].copy_from_slice(&image.bytes);
+    cpu.pc = image.entrypoint as u32;
 
     execute(&mut cpu, &mut mem);
     execute(&mut cpu, &mut mem);

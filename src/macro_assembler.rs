@@ -1143,7 +1143,7 @@ fn encode_line(
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Mode {
+pub(super) enum Mode {
     Implied,
     Accumulator,
     Immediate,
@@ -1354,7 +1354,7 @@ fn encode_instruction(
     }
 }
 
-fn opcode(mnemonic: &str, mode: Mode) -> Option<u8> {
+pub(super) fn opcode(mnemonic: &str, mode: Mode) -> Option<u8> {
     use Mode::*;
     Some(match (mnemonic, mode) {
         ("ADC", Immediate) => 0x69,

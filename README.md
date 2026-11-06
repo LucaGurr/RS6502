@@ -21,13 +21,23 @@ cargo run
 ```
 
 The runner prompts for an assembly file in `assembly/`. The built-in assembler
-accepts a small, line-oriented 6502 syntax and the MACRO-10-style source used
-by the included Microsoft BASIC for 6502. To launch BASIC, run `cargo run` and
-enter `m6502.asm`. At startup, enter the available memory size and terminal
-width (for example, `8192` and `80`), then type BASIC commands such as
-`PRINT 2` or `PRINT "HELLO"`.
+supports all official NMOS 6502 mnemonics and addressing modes, common
+column-style or colon-terminated labels, `* =`/`ORG`, and `.byte`, `.word`,
+`.text`/`.ascii`, `.asciiz`, and `.res` data directives. It is not a
+universal parser for every vendor's assembler macros or syntax. Microsoft
+BASIC's MACRO-10-style source is handled by a separate compatibility path.
+To launch BASIC, run `cargo run` and enter `m6502.asm`. At startup, enter the
+available memory size and terminal width (for example, `8192` and `80`), then
+type BASIC commands such as `PRINT 2` or `PRINT "HELLO"`.
 
 The BASIC build uses its simulator configuration (`REALIO=0`) and routes
 terminal input and output through emulator hooks. The source remains unchanged
 apart from that configuration. Hardware-specific disk and terminal routines
-are not emulated.
+are not emulated. The included `mchess.asm` is configured for local terminal
+input/output and uses only official NMOS 6502 instructions. Enter `mchess.asm`
+to play against the built-in chess engine. Enter `C` to initialize the board,
+to reset it, then enter a move as four displayed coordinate digits (for
+example, `1020` for square `10` to square `20`); the emulator treats the end
+of that line as Enter. Type `P` to have the computer reply, and `Q` to quit.
+The game starts with the board initialized and uses the local terminal rather
+than requiring ACIA hardware.

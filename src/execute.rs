@@ -6,6 +6,8 @@ use std::io::{self, BufRead, Write};
 pub const SIM_INPUT_HOOK: u16 = 0xFFF0;
 pub const SIM_OUTPUT_HOOK: u16 = 0xFFF3;
 pub const SIM_CHAR_INPUT_HOOK: u16 = 0xFFF6;
+pub const SIM_KEY_INPUT_HOOK: u16 = 0xFFF9;
+pub const SIM_EXIT_HOOK: u16 = 0xFFFC;
 
 pub fn execute(cpu: &mut Cpu, mem: &mut Mem) {
     if cpu.halted {
@@ -59,6 +61,18 @@ pub fn run_with_io<R: BufRead, W: Write>(
                 return_from_subroutine(cpu, mem);
                 cpu.cycles += 6;
             }
+            SIM_KEY_INPUT_HOOK => {
+                let Some(character) = next_key_character(&mut input, &mut pending_input)? else {
+                    cpu.halted = true;
+                    continue;
+                };
+                cpu.a = character;
+                cpu.z = character == 0;
+                cpu.n = character & 0x80 != 0;
+                return_from_subroutine(cpu, mem);
+                cpu.cycles += 6;
+            }
+            SIM_EXIT_HOOK => cpu.halted = true,
             _ => execute(cpu, mem),
         }
     }
@@ -79,6 +93,27 @@ fn next_input_character<R: BufRead>(
         }
         pending.extend(line.bytes());
         pending.push_back(b'\r');
+    }
+    Ok(pending.pop_front())
+}
+
+fn next_key_character<R: BufRead>(
+    input: &mut R,
+    pending: &mut VecDeque<u8>,
+) -> io::Result<Option<u8>> {
+    while pending.is_empty() {
+        let mut line = String::new();
+        if input.read_line(&mut line)? == 0 {
+            return Ok(None);
+        }
+        while line.ends_with(['\n', '\r']) {
+            line.pop();
+        }
+        let is_move_entry = line.len() > 1;
+        pending.extend(line.bytes());
+        if line.is_empty() || is_move_entry {
+            pending.push_back(b'\r');
+        }
     }
     Ok(pending.pop_front())
 }

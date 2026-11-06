@@ -1,6 +1,7 @@
 mod assembler;
 mod define;
 mod execute;
+mod generic_assembler;
 pub mod helpers;
 mod instructions;
 mod macro_assembler;
