@@ -39,6 +39,7 @@ pub fn lda_zpx(cpu: &mut Cpu, mem: &Mem) {
     set_nz(cpu, cpu.a);
     cpu.cycles += 4;
 }
+
 pub fn ldy_zpx(cpu: &mut Cpu, mem: &Mem) {
     let addr = fetch(cpu, mem).wrapping_add(cpu.x) as usize;
     cpu.y = mem.data[addr];
@@ -59,6 +60,7 @@ pub fn lda_abs(cpu: &mut Cpu, mem: &Mem) {
     set_nz(cpu, cpu.a);
     cpu.cycles += 4;
 }
+
 pub fn ldy_abs(cpu: &mut Cpu, mem: &Mem) {
     let addr = fetch_word(cpu, mem) as usize;
     cpu.y = mem.data[addr];
@@ -154,6 +156,44 @@ pub fn adc_imm(cpu: &mut Cpu, mem: &Mem) {
     set_nz(cpu, result);
     cpu.cycles += 2;
 }
+
+pub fn adc_abs(cpu: &mut Cpu, mem: &Mem) {
+    let addr = fetch_word(cpu, mem) as usize;
+    let mem_value = mem.data[addr];
+    let sum = cpu.a as u16 + mem_value as u16 + cpu.c as u16;
+    let result = sum as u8;
+    cpu.v = (!(cpu.a ^ mem_value) & (cpu.a ^ result) & 0x80) != 0;
+    cpu.c = sum > 0xFF;
+    cpu.a = result;
+    set_nz(cpu, result);
+    cpu.cycles += 4;
+}
+
+pub fn adc_abx(cpu: &mut Cpu, mem: &Mem) {
+    let base_addr = fetch_word(cpu, mem);
+    let addr = base_addr.wrapping_add(cpu.x as u16) as usize;
+    let mem_value = mem.data[addr];
+    let sum = cpu.a as u16 + mem_value as u16 + cpu.c as u16;
+    let result = sum as u8;
+    cpu.v = (!(cpu.a ^ mem_value) & (cpu.a ^ result) & 0x80) != 0;
+    cpu.c = sum > 0xFF;
+    cpu.a = result;
+    set_nz(cpu, result);
+    cpu.cycles += 4 + u64::from((base_addr & 0xFF00) != (addr as u16 & 0xFF00));
+}
+
+pub fn adc_aby(cpu: &mut Cpu, mem: &Mem) {
+    let base_addr = fetch_word(cpu, mem);
+    let addr = base_addr.wrapping_add(cpu.y as u16) as usize;
+    let mem_value = mem.data[addr];
+    let sum = cpu.a as u16 + mem_value as u16 + cpu.c as u16;
+    let result = sum as u8;
+    cpu.v = (!(cpu.a ^ mem_value) & (cpu.a ^ result) & 0x80) != 0;
+    cpu.c = sum > 0xFF;
+    cpu.a = result;
+    set_nz(cpu, result);
+    cpu.cycles += 4 + u64::from((base_addr & 0xFF00) != (addr as u16 & 0xFF00));
+}   
 
 pub fn inx(cpu: &mut Cpu) {
     cpu.x = cpu.x.wrapping_add(1);

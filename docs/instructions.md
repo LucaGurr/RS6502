@@ -85,8 +85,8 @@
 | - [x] | ADC         | IMM  | `69`   |     2 |      2 | A = A + M + C; NZCV     |
 | - [ ] | ADC         | ZP   | `65`   |     2 |      3 | A = A + M + C; NZCV     |
 | - [ ] | ADC         | ZPX  | `75`   |     2 |      4 | A = A + M + C; NZCV     |
-| - [ ] | ADC         | ABS  | `6D`   |     3 |      4 | A = A + M + C; NZCV     |
-| - [ ] | ADC         | ABX  | `7D`   |     3 |     4+ | A = A + M + C; NZCV     |
+| - [x] | ADC         | ABS  | `6D`   |     3 |      4 | A = A + M + C; NZCV     |
+| - [x] | ADC         | ABX  | `7D`   |     3 |     4+ | A = A + M + C; NZCV     |
 | - [ ] | ADC         | ABY  | `79`   |     3 |     4+ | A = A + M + C; NZCV     |
 | - [ ] | ADC         | INX  | `61`   |     2 |      6 | A = A + M + C; NZCV     |
 | - [ ] | ADC         | INY  | `71`   |     2 |     5+ | A = A + M + C; NZCV     |
