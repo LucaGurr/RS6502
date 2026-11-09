@@ -1,4 +1,4 @@
-        ;promt
+;promt
         LDA #'T'
         STA $F001
         LDA #'h'
